@@ -382,6 +382,7 @@
                     <p style="margin-left: 30px;">→ Carteirinha Bronze: apenas salão principal</p>
                     <p style="margin-left: 30px;">→ Carteirinha Prata: salão + piscina</p>
                     <p style="margin-left: 30px;">→ Carteirinha Ouro: acesso total + área VIP</p>
+                    <p style="font-size: 1.1rem; margin-top: 15px; color: #84BC9C;"><em>(Lembre-se: A 'cor' da carteirinha é definida APÓS a verificação da identidade!)</em></p>
                 </div>
             </div>
             <div class="success-box">
@@ -493,7 +494,7 @@ HMACSHA256(
                         <h3>⚠️ Desvantagens</h3>
                         <ul>
                             <li><strong>Tamanho:</strong> Maior que IDs de sessão</li>
-                            <li><strong>Revogação:</strong> Difícil invalidar antes do vencimento</li>
+                            <li><strong>Revogação:</strong> Difícil invalidar antes do vencimento <span style="font-size: 0.9rem; color: #F0DADA;"><em>(mitigável com listas de revogação / tokens curtos)</em></span></li>
                             <li><strong>Exposição:</strong> Dados visíveis (se não criptografados)</li>
                             <li><strong>Segurança:</strong> Vulnerável se mal implementado</li>
                         </ul>
@@ -842,7 +843,7 @@ res.cookie('access_token', token, {
                     <div class="security-alert">
                         <strong>⚠️ Cuidados:</strong>
                         <ul>
-                            <li>Refresh tokens são mais sensíveis</li>
+                            <li>Refresh tokens são mais sensíveis <span style="font-size: 0.9rem; color: #F0DADA;"><em>(exigem armazenamento extra seguro!)</em></span></li>
                             <li>Implementar rotação de refresh tokens</li>
                             <li>Logs e monitoramento de uso</li>
                         </ul>
@@ -949,12 +950,14 @@ res.cookie('access_token', token, {
                         <li>OpenID Connect Specification</li>
                         <li>OWASP Authentication Guide</li>
                         <li>NIST Digital Identity Guidelines</li>
+                        <li><a href="https://jwt.io" target="_blank" style="color: #A4D4AE;">jwt.io (Playground)</a></li>
+                        <li><a href="https://oauth.tools" target="_blank" style="color: #A4D4AE;">oauth.tools (Playground)</a></li>
                     </ul>
                 </div>
             </div>
             <div style="margin-top: 50px;">
                 <h2>Obrigado pela atenção! 🙏</h2>
-                <p style="font-size: 1.2rem; color: #87CEEB;">
+                <p style="font-size: 1.2rem; color: #B0E0E6;">
                     Equipe: Kevin • Vitor Cesar • Gustavo Ross • Guilherme assis
                 </p>
             </div>
