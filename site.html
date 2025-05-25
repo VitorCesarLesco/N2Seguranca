@@ -1,0 +1,1043 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Métodos de Autenticação e Autorização</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            /* Professional Palette: Dark Blue, Medium Blue, Light Gray, White */
+            background: linear-gradient(135deg, #0A2342 0%, #1E4A79 100%); /* Dark blue gradient */
+            color: #E0E0E0; /* Light gray for text on dark background */
+            overflow: hidden;
+        }
+
+        .presentation-container {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .slide {
+            display: none;
+            padding: 40px;
+            height: 100vh;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            position: relative;
+            background: rgba(10, 35, 66, 0.1); /* Slightly transparent dark blue */
+            backdrop-filter: blur(8px);
+        }
+
+        .slide.active {
+            display: flex;
+            flex-direction: column;
+            animation: slideIn 0.5s ease-in-out;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(30px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .slide h1 {
+            font-size: 3.5rem;
+            margin-bottom: 30px;
+            /* Professional Accent: Medium Blue / Teal */
+            background: linear-gradient(45deg, #2CA58D, #52C2B8);
+            -webkit-background-clip: text;
+            background-clip: text; /* Standard property */
+            -webkit-text-fill-color: transparent;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+        }
+
+        .slide h2 {
+            font-size: 2.8rem;
+            margin-bottom: 25px;
+            color: #2CA58D; /* Medium Blue/Teal */
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+        }
+
+        .slide h3 {
+            font-size: 2.2rem;
+            margin-bottom: 20px;
+            color: #84BC9C; /* Softer Green/Blue Accent */
+        }
+
+        .slide p, .slide li {
+            font-size: 1.4rem;
+            line-height: 1.6;
+            margin-bottom: 15px;
+            max-width: 900px;
+            color: #D0D0D0; /* Slightly lighter gray for readability */
+        }
+
+        .slide ul {
+            text-align: left;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .slide li {
+            margin-bottom: 12px;
+            padding-left: 10px;
+        }
+
+        .comparison-table {
+            background: rgba(255, 255, 255, 0.05); /* Very subtle white */
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px auto;
+            backdrop-filter: blur(5px);
+        }
+
+        .comparison-table table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .comparison-table th, .comparison-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1); /* Subtle border */
+            color: #E0E0E0;
+        }
+
+        .comparison-table th {
+            background: rgba(44, 165, 141, 0.2); /* Teal accent, slightly transparent */
+            font-weight: bold;
+            color: #FFFFFF;
+        }
+
+        .code-block {
+            background: rgba(0, 0, 0, 0.2); /* Darker, less saturated */
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px auto;
+            font-family: 'Courier New', monospace;
+            font-size: 1.1rem;
+            text-align: left;
+            max-width: 800px;
+            border-left: 4px solid #2CA58D; /* Teal accent border */
+            color: #C5C5C5;
+        }
+
+        .speaker-indicator {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(44, 165, 141, 0.15); /* Teal accent, subtle */
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 1.1rem;
+            border: 1px solid #2CA58D; /* Teal border */
+            color: #B0E0E6; /* Light blue/cyan text */
+        }
+
+        .navigation {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 15px;
+            z-index: 1000;
+        }
+
+        .nav-btn {
+            background: rgba(44, 165, 141, 0.3); /* Teal accent, subtle */
+            border: 1px solid #52C2B8; /* Lighter Teal border */
+            color: #FFFFFF;
+            padding: 12px 24px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(5px);
+        }
+
+        .nav-btn:hover {
+            background: rgba(44, 165, 141, 0.5); /* Darker Teal on hover */
+            transform: translateY(-2px);
+        }
+
+        .slide-counter {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.25); /* Dark, subtle */
+            padding: 8px 16px;
+            border-radius: 15px;
+            font-size: 1rem;
+            color: #B0B0B0;
+        }
+
+        .highlight {
+            /* Using a contrasting but professional highlight */
+            background: linear-gradient(45deg, #84BC9C, #A4D4AE);
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-weight: bold;
+            color: #0A2342; /* Dark text on light highlight */
+        }
+
+        .security-alert {
+            background: rgba(179, 58, 58, 0.15); /* Muted red */
+            border: 1px solid #B33A3A;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px auto;
+            max-width: 700px;
+            color: #F0DADA;
+        }
+
+        .success-box {
+            background: rgba(60, 179, 113, 0.15); /* Muted green */
+            border: 1px solid #3CB371;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px auto;
+            max-width: 700px;
+            color: #DAF0DA;
+        }
+
+        .flow-diagram {
+            background: rgba(255, 255, 255, 0.03); /* Very subtle light background */
+            border-radius: 10px;
+            padding: 25px;
+            margin: 20px auto;
+            max-width: 900px;
+            font-size: 1.2rem;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .two-column {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        @media (max-width: 768px) {
+            .slide h1 { font-size: 2.5rem; }
+            .slide h2 { font-size: 2rem; }
+            .slide p, .slide li { font-size: 1.2rem; }
+            .two-column { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="presentation-container">
+        <!-- SLIDE 1 - TÍTULO -->
+        <div class="slide active">
+            <div class="speaker-indicator">👥 TODOS</div>
+            <h1>Métodos de Autenticação e Autorização</h1>
+            <h3>Protegendo o Acesso no Mundo Digital</h3>
+            <p style="font-size: 1.6rem; margin-top: 40px;">
+                <strong>Equipe:</strong><br>
+                🔒 Kevin: Fundamentos e Conceitos<br>
+                🔑 Vitor Cesar: JWT e Tecnologias Modernas<br>
+                🛡️ Gustavo Ross: OAuth 2.0 e OpenID Connect<br>
+                ⚠️ Guilherme assis: Segurança e Melhores Práticas
+            </p>
+            <p style="font-size: 1.2rem; margin-top: 30px; color: #87CEEB;">
+                Seminário de Segurança da Informação • 2025
+            </p>
+        </div>
+
+        <!-- SLIDE 2 - AGENDA -->
+        <div class="slide">
+            <div class="speaker-indicator">👥 TODOS</div>
+            <h2>Agenda da Apresentação</h2>
+            <div class="two-column">
+                <div>
+                    <h3>🔒 Kevin (5-6 min)</h3>
+                    <ul>
+                        <li>Introdução ao tema</li>
+                        <li>Autenticação vs Autorização</li>
+                        <li>Conceitos fundamentais</li>
+                        <li>Analogias práticas</li>
+                    </ul>
+                </div>
+                <div>
+                    <h3>🔑 Vitor Cesar (5-6 min)</h3>
+                    <ul>
+                        <li>JSON Web Tokens (JWT)</li>
+                        <li>Estrutura e funcionamento</li>
+                        <li>Vantagens e desvantagens</li>
+                        <li>Casos de uso práticos</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="two-column" style="margin-top: 30px;">
+                <div>
+                    <h3>🛡️ Gustavo Ross (5-6 min)</h3>
+                    <ul>
+                        <li>OAuth 2.0 Framework</li>
+                        <li>OpenID Connect</li>
+                        <li>Fluxos de autorização</li>
+                        <li>Integração com terceiros</li>
+                    </ul>
+                </div>
+                <div>
+                    <h3>⚠️ Guilherme assis (5-6 min)</h3>
+                    <ul>
+                        <li>Vulnerabilidades comuns</li>
+                        <li>Ataques e riscos</li>
+                        <li>Melhores práticas</li>
+                        <li>Conclusão e tendências</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 3 - INTRODUÇÃO -->
+        <div class="slide">
+            <div class="speaker-indicator">🔒 Kevin</div>
+            <h2>Por que Autenticação e Autorização são Críticas?</h2>
+            <div class="two-column">
+                <div>
+                    <h3>📊 Estatísticas Alarmantes</h3>
+                    <ul>
+                        <li><span class="highlight">81%</span> dos ataques envolvem credenciais fracas ou roubadas</li>
+                        <li><span class="highlight">4.9 bilhões</span> de registros expostos em 2023</li>
+                        <li><span class="highlight">$4.88 milhões</span> custo médio de uma violação de dados</li>
+                    </ul>
+                </div>
+                <div>
+                    <h3>🎯 Cenário Atual</h3>
+                    <ul>
+                        <li>Explosão de aplicações web e APIs</li>
+                        <li>Trabalho remoto e BYOD</li>
+                        <li>Integração com serviços terceiros</li>
+                        <li>Ameaças cada vez mais sofisticadas</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="security-alert">
+                <strong>⚡ Realidade:</strong> Controles de acesso são a primeira e mais importante linha de defesa contra ameaças cibernéticas!
+            </div>
+        </div>
+
+        <!-- SLIDE 4 - CONCEITOS FUNDAMENTAIS -->
+        <div class="slide">
+            <div class="speaker-indicator">🔒 Kevin</div>
+            <h2>Autenticação vs Autorização</h2>
+            <div class="two-column">
+                <div>
+                    <h3>🔐 Autenticação</h3>
+                    <p><strong>"QUEM é você?"</strong></p>
+                    <ul>
+                        <li>Verifica a identidade do usuário</li>
+                        <li>Primeira etapa do controle de acesso</li>
+                        <li>Baseada em fatores:</li>
+                        <ul style="margin-left: 20px;">
+                            <li>Algo que você <strong>sabe</strong> (senha)</li>
+                            <li>Algo que você <strong>tem</strong> (token)</li>
+                            <li>Algo que você <strong>é</strong> (biometria)</li>
+                        </ul>
+                    </ul>
+                </div>
+                <div>
+                    <h3>🗝️ Autorização</h3>
+                    <p><strong>"O QUE você pode fazer?"</strong></p>
+                    <ul>
+                        <li>Define permissões e privilégios</li>
+                        <li>Ocorre APÓS autenticação</li>
+                        <li>Controla acesso granular:</li>
+                        <ul style="margin-left: 20px;">
+                            <li><strong>Recursos</strong> (arquivos, APIs)</li>
+                            <li><strong>Operações</strong> (ler, escrever, deletar)</li>
+                            <li><strong>Contexto</strong> (horário, localização)</li>
+                        </ul>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 5 - ANALOGIA -->
+        <div class="slide">
+            <div class="speaker-indicator">🔒 Kevin</div>
+            <h2>Analogia do Clube Exclusivo</h2>
+            <div class="flow-diagram">
+                <h3>🏢 Imagine um clube exclusivo...</h3>
+                <br>
+                <div style="font-size: 1.4rem; line-height: 2;">
+                    <p><strong>1. 🚪 Na Entrada (AUTENTICAÇÃO):</strong></p>
+                    <p style="margin-left: 30px;">→ Você mostra sua carteirinha</p>
+                    <p style="margin-left: 30px;">→ Segurança confirma: "É realmente você?"</p>
+                    <br>
+                    <p><strong>2. 🎯 Dentro do Clube (AUTORIZAÇÃO):</strong></p>
+                    <p style="margin-left: 30px;">→ Carteirinha Bronze: apenas salão principal</p>
+                    <p style="margin-left: 30px;">→ Carteirinha Prata: salão + piscina</p>
+                    <p style="margin-left: 30px;">→ Carteirinha Ouro: acesso total + área VIP</p>
+                </div>
+            </div>
+            <div class="success-box">
+                <strong>💡 Lição:</strong> Primeiro provamos quem somos, depois o sistema decide o que podemos acessar!
+            </div>
+        </div>
+
+        <!-- SLIDE 6 - TRANSIÇÃO PARA JWT -->
+        <div class="slide">
+            <div class="speaker-indicator">🔑 Vitor Cesar</div>
+            <h2>Evolução dos Métodos de Autenticação</h2>
+            <div class="two-column">
+                <div>
+                    <h3>📜 Métodos Tradicionais</h3>
+                    <ul>
+                        <li><strong>Sessões no Servidor</strong></li>
+                        <ul style="margin-left: 20px;">
+                            <li>Armazenamento em memória/BD</li>
+                            <li>Dificulta escalabilidade</li>
+                            <li>Problemas em arquiteturas distribuídas</li>
+                        </ul>
+                        <li><strong>Cookies de Sessão</strong></li>
+                        <ul style="margin-left: 20px;">
+                            <li>Limitados a domínio</li>
+                            <li>Vulneráveis a CSRF</li>
+                            <li>Não funcionam bem com APIs</li>
+                        </ul>
+                    </ul>
+                </div>
+                <div>
+                    <h3>🚀 Necessidades Modernas</h3>
+                    <ul>
+                        <li><strong>APIs RESTful</strong> (stateless)</li>
+                        <li><strong>Aplicações SPA</strong> (React, Vue, Angular)</li>
+                        <li><strong>Microserviços</strong> distribuídos</li>
+                        <li><strong>Aplicações Mobile</strong></li>
+                        <li><strong>Integração Multi-domínio</strong></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="security-alert">
+                <strong>🎯 Solução:</strong> Precisamos de tokens stateless, portáveis e seguros!
+            </div>
+        </div>
+
+        <!-- SLIDE 7 - JWT ESTRUTURA -->
+        <div class="slide">
+            <div class="speaker-indicator">🔑 Vitor Cesar</div>
+            <h2>JSON Web Token (JWT) - Estrutura</h2>
+            <div class="code-block">
+                <p><strong>🔗 Formato:</strong> xxxxx.yyyyy.zzzzz</p>
+            </div>
+            <div class="two-column">
+                <div>
+                    <h3>📋 Header</h3>
+                    <div class="code-block">
+{
+  "alg": "HS256",
+  "typ": "JWT"
+}
+                    </div>
+                    <p>Define algoritmo e tipo do token</p>
+                </div>
+                <div>
+                    <h3>📄 Payload</h3>
+                    <div class="code-block">
+{
+  "sub": "1234567890",
+  "name": "João Silva",
+  "role": "admin",
+  "exp": 1516242622
+}
+                    </div>
+                    <p>Contém as "claims" (informações)</p>
+                </div>
+            </div>
+            <div>
+                <h3>✍️ Signature</h3>
+                <div class="code-block">
+HMACSHA256(
+  base64UrlEncode(header) + "." +
+  base64UrlEncode(payload),
+  secret
+)
+                </div>
+                <p>Garante integridade e autenticidade</p>
+            </div>
+        </div>
+
+        <!-- SLIDE 8 - JWT VANTAGENS E DESVANTAGENS -->
+        <div class="slide">
+            <div class="speaker-indicator">🔑 Vitor Cesar</div>
+            <h2>JWT - Prós e Contras</h2>
+            <div class="two-column">
+                <div>
+                    <div class="success-box">
+                        <h3>✅ Vantagens</h3>
+                        <ul>
+                            <li><strong>Stateless:</strong> Sem armazenamento no servidor</li>
+                            <li><strong>Portável:</strong> Funciona entre domínios</li>
+                            <li><strong>Performance:</strong> Menos consultas ao BD</li>
+                            <li><strong>Escalável:</strong> Ideal para microserviços</li>
+                            <li><strong>Padrão:</strong> RFC 7519, amplamente suportado</li>
+                        </ul>
+                    </div>
+                </div>
+                <div>
+                    <div class="security-alert">
+                        <h3>⚠️ Desvantagens</h3>
+                        <ul>
+                            <li><strong>Tamanho:</strong> Maior que IDs de sessão</li>
+                            <li><strong>Revogação:</strong> Difícil invalidar antes do vencimento</li>
+                            <li><strong>Exposição:</strong> Dados visíveis (se não criptografados)</li>
+                            <li><strong>Segurança:</strong> Vulnerável se mal implementado</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="flow-diagram">
+                <strong>💡 Regra de Ouro:</strong> JWT é excelente para autenticação stateless, mas requer implementação cuidadosa!
+            </div>
+        </div>
+
+        <!-- SLIDE 9 - CASOS DE USO JWT -->
+        <div class="slide">
+            <div class="speaker-indicator">🔑 Vitor Cesar</div>
+            <h2>JWT - Casos de Uso Práticos</h2>
+            <div class="flow-diagram">
+                <h3>🔄 Fluxo Típico de Autenticação</h3>
+                <div style="text-align: left; font-size: 1.2rem; line-height: 1.8;">
+                    <p><strong>1.</strong> 👤 Cliente faz login (POST /auth/login)</p>
+                    <p><strong>2.</strong> 🏢 Servidor valida credenciais</p>
+                    <p><strong>3.</strong> 🏢 Servidor gera JWT com informações do usuário</p>
+                    <p><strong>4.</strong> 🏢 Servidor retorna JWT para o cliente</p>
+                    <p><strong>5.</strong> 👤 Cliente armazena JWT (cookie/localStorage)</p>
+                    <p><strong>6.</strong> 👤 Cliente envia JWT em requests (Header: Authorization)</p>
+                    <p><strong>7.</strong> 🏢 Servidor valida JWT e processa request</p>
+                </div>
+            </div>
+            <div class="two-column">
+                <div>
+                    <h3>🎯 Ideal Para:</h3>
+                    <ul>
+                        <li>APIs REST stateless</li>
+                        <li>Single Page Applications</li>
+                        <li>Arquiteturas de microserviços</li>
+                        <li>Aplicações mobile</li>
+                    </ul>
+                </div>
+                <div>
+                    <h3>❌ Evitar Para:</h3>
+                    <ul>
+                        <li>Dados extremamente sensíveis</li>
+                        <li>Tokens de longa duração</li>
+                        <li>Quando revogação frequente é necessária</li>
+                        <li>Sistemas com requisitos de auditoria rígidos</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 10 - OAUTH 2.0 INTRODUÇÃO -->
+        <div class="slide">
+            <div class="speaker-indicator">🛡️ Gustavo Ross</div>
+            <h2>OAuth 2.0 - Framework de Autorização</h2>
+            <div class="two-column">
+                <div>
+                    <h3>🤔 O Problema</h3>
+                    <ul>
+                        <li>Como dar acesso sem compartilhar senhas?</li>
+                        <li>Usuário quer que App A acesse dados do App B</li>
+                        <li>Exemplo: "Entrar com Google"</li>
+                    </ul>
+                    <div class="security-alert">
+                        <strong>❌ Solução Ruim:</strong><br>
+                        Dar sua senha do Google para outro app
+                    </div>
+                </div>
+                <div>
+                    <h3>✅ Solução OAuth 2.0</h3>
+                    <ul>
+                        <li>Autorização <strong>delegada</strong></li>
+                        <li>Acesso <strong>limitado</strong> e <strong>temporário</strong></li>
+                        <li>Sem exposição de credenciais</li>
+                        <li>Controle granular de permissões</li>
+                    </ul>
+                    <div class="success-box">
+                        <strong>✅ Solução Boa:</strong><br>
+                        Google gera token específico para o app
+                    </div>
+                </div>
+            </div>
+            <div class="flow-diagram">
+                <strong>🎯 OAuth 2.0 = "Valet Key" para suas contas online</strong><br>
+                Como dar chave do carro ao manobrista: acesso limitado, temporário e controlado
+            </div>
+        </div>
+
+        <!-- SLIDE 11 - OAUTH COMPONENTES -->
+        <div class="slide">
+            <div class="speaker-indicator">🛡️ Gustavo Ross</div>
+            <h2>OAuth 2.0 - Componentes Principais</h2>
+            <div class="comparison-table">
+                <table>
+                    <tr>
+                        <th>Componente</th>
+                        <th>Função</th>
+                        <th>Exemplo</th>
+                    </tr>
+                    <tr>
+                        <td><strong>👤 Resource Owner</strong></td>
+                        <td>Proprietário dos dados</td>
+                        <td>Você (usuário)</td>
+                    </tr>
+                    <tr>
+                        <td><strong>📱 Client</strong></td>
+                        <td>Aplicação que quer acessar</td>
+                        <td>App que você está usando</td>
+                    </tr>
+                    <tr>
+                        <td><strong>🗄️ Resource Server</strong></td>
+                        <td>Onde estão os dados</td>
+                        <td>API do Google (Gmail, Drive)</td>
+                    </tr>
+                    <tr>
+                        <td><strong>🔐 Authorization Server</strong></td>
+                        <td>Emite tokens de acesso</td>
+                        <td>Servidor de auth do Google</td>
+                    </tr>
+                </table>
+            </div>
+            <div class="flow-diagram">
+                <h3>🔄 Exemplo Prático: "Entrar com Google"</h3>
+                <p><strong>Resource Owner:</strong> Você | <strong>Client:</strong> Site/App | <strong>Auth Server:</strong> accounts.google.com | <strong>Resource Server:</strong> Gmail API</p>
+            </div>
+        </div>
+
+        <!-- SLIDE 12 - OAUTH FLUXO -->
+        <div class="slide">
+            <div class="speaker-indicator">🛡️ Gustavo Ross</div>
+            <h2>OAuth 2.0 - Fluxo Authorization Code</h2>
+            <div class="flow-diagram">
+                <div style="text-align: left; font-size: 1.1rem; line-height: 1.6;">
+                    <p><strong>1.</strong> 👤 Usuário clica "Entrar com Google" no site</p>
+                    <p><strong>2.</strong> 📱 Site redireciona para Google (com client_id e scope)</p>
+                    <p><strong>3.</strong> 👤 Usuário faz login no Google</p>
+                    <p><strong>4.</strong> 🔐 Google pergunta: "Autorizar acesso ao seu email?"</p>
+                    <p><strong>5.</strong> 👤 Usuário clica "Autorizar"</p>
+                    <p><strong>6.</strong> 🔐 Google redireciona de volta com <span class="highlight">authorization code</span></p>
+                    <p><strong>7.</strong> 📱 Site troca o code por <span class="highlight">access token</span> (backend)</p>
+                    <p><strong>8.</strong> 📱 Site usa access token para acessar Gmail API</p>
+                </div>
+            </div>
+            <div class="success-box">
+                <strong>🔒 Segurança:</strong> O usuário nunca compartilha senha. Google controla totalmente o processo de autenticação!
+            </div>
+        </div>
+
+        <!-- SLIDE 13 - OPENID CONNECT -->
+        <div class="slide">
+            <div class="speaker-indicator">🛡️ Gustavo Ross</div>
+            <h2>OpenID Connect - Autenticação sobre OAuth 2.0</h2>
+            <div class="two-column">
+                <div>
+                    <h3>🤷 O Problema do OAuth 2.0</h3>
+                    <ul>
+                        <li>OAuth 2.0 = apenas <strong>autorização</strong></li>
+                        <li>Não diz <strong>quem</strong> é o usuário</li>
+                        <li>Cada provedor tem formato diferente</li>
+                        <li>Dificulta implementação de SSO</li>
+                    </ul>
+                </div>
+                <div>
+                    <h3>✅ Solução: OpenID Connect</h3>
+                    <ul>
+                        <li>Camada de <strong>identidade</strong> sobre OAuth 2.0</li>
+                        <li>Responde "quem é o usuário?"</li>
+                        <li>Formato padronizado (JWT)</li>
+                        <li>Perfeito para Single Sign-On</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="comparison-table">
+                <table>
+                    <tr>
+                        <th>OAuth 2.0</th>
+                        <th>OpenID Connect</th>
+                    </tr>
+                    <tr>
+                        <td>"O que posso acessar?"</td>
+                        <td>"Quem sou eu?"</td>
+                    </tr>
+                    <tr>
+                        <td>Access Token</td>
+                        <td>Access Token + <strong>ID Token</strong></td>
+                    </tr>
+                    <tr>
+                        <td>Autorização</td>
+                        <td>Autenticação + Autorização</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <!-- SLIDE 14 - VULNERABILIDADES -->
+        <div class="slide">
+            <div class="speaker-indicator">⚠️ Guilherme assis</div>
+            <h2>Principais Vulnerabilidades e Ataques</h2>
+            <div class="two-column">
+                <div>
+                                            <h3>🎯 Ataques em JWT</h3>
+                    <div class="security-alert">
+                        <ul>
+                            <li><strong>Algorithm Confusion:</strong> Trocar RS256 por HS256</li>
+                            <li><strong>None Algorithm:</strong> Remover verificação</li>
+                            <li><strong>Weak Secrets:</strong> Chaves fracas para HMAC</li>
+                            <li><strong>Token Leakage:</strong> Exposição em logs/URLs</li>
+                        </ul>
+                    </div>
+                </div>
+                <div>
+                    <h3>🎯 Ataques em OAuth</h3>
+                    <div class="security-alert">
+                        <ul>
+                            <li><strong>Code Interception:</strong> Roubo do authorization code</li>
+                            <li><strong>CSRF:</strong> Cross-Site Request Forgery</li>
+                            <li><strong>Redirect URI Manipulation:</strong> Redirecionamento malicioso</li>
+                            <li><strong>Token Hijacking:</strong> Roubo de access tokens</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="code-block">
+                <strong>❌ Exemplo de Ataque - Algorithm Confusion:</strong><br>
+                Header malicioso: { "alg": "none", "typ": "JWT" }<br>
+                Payload malicioso: { "sub": "user123", "role": "admin" }<br>
+                → Token aceito sem verificação de assinatura!
+            </div>
+        </div>
+
+        <!-- SLIDE 15 - MELHORES PRÁTICAS -->
+        <div class="slide">
+            <div class="speaker-indicator">⚠️ Guilherme assis</div>
+            <h2>Melhores Práticas de Segurança</h2>
+            <div class="two-column">
+                <div>
+                    <div class="success-box">
+                        <h3>✅ JWT Seguro</h3>
+                        <ul>
+                            <li><strong>Algoritmo forte:</strong> RS256/ES256</li>
+                            <li><strong>Chaves robustas:</strong> Mínimo 256 bits</li>
+                            <li><strong>Expiração curta:</strong> 15-60 minutos</li>
+                            <li><strong>Validação rigorosa:</strong> iss, aud, exp</li>
+                            <li><strong>Não expor em URLs</strong></li>
+                        </ul>
+                    </div>
+                </div>
+                <div>
+                    <div class="success-box">
+                        <h3>✅ OAuth Seguro</h3>
+                        <ul>
+                            <li><strong>PKCE:</strong> Para clientes públicos</li>
+                            <li><strong>State parameter:</strong> Proteção CSRF</li>
+                            <li><strong>Validar redirect_uri:</strong> Lista permitida</li>
+                            <li><strong>HTTPS obrigatório</strong></li>
+                            <li><strong>Scope mínimo necessário</strong></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="code-block">
+                <strong>✅ Exemplo de Validação Segura de JWT:</strong>
+jwt.verify(token, publicKey, {
+    algorithms: ['RS256'],           // Algoritmo específico
+    issuer: 'https://auth.exemplo.com',
+    audience: 'api.exemplo.com',
+    maxAge: '1h'                     // Tempo máximo
+});
+            </div>
+        </div>
+
+        <!-- SLIDE 16 - ARMAZENAMENTO SEGURO -->
+        <div class="slide">
+            <div class="speaker-indicator">⚠️ Guilherme assis</div>
+            <h2>Armazenamento Seguro de Tokens</h2>
+            <div class="comparison-table">
+                <table>
+                    <tr>
+                        <th>Método</th>
+                        <th>Segurança</th>
+                        <th>Casos de Uso</th>
+                        <th>Vulnerabilidades</th>
+                    </tr>
+                    <tr>
+                        <td><strong>localStorage</strong></td>
+                        <td>❌ Baixa</td>
+                        <td>Desenvolvimento apenas</td>
+                        <td>XSS, persistente</td>
+                    </tr>
+                    <tr>
+                        <td><strong>sessionStorage</strong></td>
+                        <td>⚠️ Média</td>
+                        <td>SPAs simples</td>
+                        <td>XSS, aba específica</td>
+                    </tr>
+                    <tr>
+                        <td><strong>httpOnly Cookie</strong></td>
+                        <td>✅ Alta</td>
+                        <td>Aplicações web</td>
+                        <td>CSRF (mitigável)</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Secure Cookie + HTTPS</strong></td>
+                        <td>✅ Muito Alta</td>
+                        <td>Produção</td>
+                        <td>Mínimas</td>
+                    </tr>
+                </table>
+            </div>
+            <div class="code-block">
+                <strong>✅ Cookie Seguro:</strong>
+res.cookie('access_token', token, {
+    httpOnly: true,      // Não acessível via JavaScript
+    secure: true,        // Apenas HTTPS
+    sameSite: 'strict',  // Proteção CSRF
+    maxAge: 3600000      // 1 hora
+});
+            </div>
+        </div>
+
+        <!-- SLIDE 17 - IMPLEMENTAÇÃO PRÁTICA -->
+        <div class="slide">
+            <div class="speaker-indicator">⚠️ Guilherme assis</div>
+            <h2>Implementação com Refresh Tokens</h2>
+            <div class="flow-diagram">
+                <h3>🔄 Estratégia de Renovação Automática</h3>
+                <div style="text-align: left; font-size: 1.1rem;">
+                    <p><strong>1.</strong> 🔑 Access Token: curta duração (15-60 min)</p>
+                    <p><strong>2.</strong> 🔄 Refresh Token: longa duração (7-30 dias)</p>
+                    <p><strong>3.</strong> 📱 Cliente detecta token expirado (401)</p>
+                    <p><strong>4.</strong> 📱 Cliente usa refresh token para obter novo access token</p>
+                    <p><strong>5.</strong> 🏢 Servidor valida refresh token e emite novo par</p>
+                    <p><strong>6.</strong> 📱 Cliente repete requisição original com novo token</p>
+                </div>
+            </div>
+            <div class="two-column">
+                <div>
+                    <div class="success-box">
+                        <strong>✅ Vantagens:</strong>
+                        <ul>
+                            <li>Segurança: tokens de acesso curtos</li>
+                            <li>UX: renovação transparente</li>
+                            <li>Controle: revogação de refresh tokens</li>
+                        </ul>
+                    </div>
+                </div>
+                <div>
+                    <div class="security-alert">
+                        <strong>⚠️ Cuidados:</strong>
+                        <ul>
+                            <li>Refresh tokens são mais sensíveis</li>
+                            <li>Implementar rotação de refresh tokens</li>
+                            <li>Logs e monitoramento de uso</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 18 - TENDÊNCIAS FUTURAS -->
+        <div class="slide">
+            <div class="speaker-indicator">⚠️ Guilherme assis</div>
+            <h2>Tendências e Futuro da Autenticação</h2>
+            <div class="two-column">
+                <div>
+                    <h3>🚀 Tecnologias Emergentes</h3>
+                    <ul>
+                        <li><strong>WebAuthn/FIDO2:</strong></li>
+                        <ul style="margin-left: 20px;">
+                            <li>Autenticação sem senha</li>
+                            <li>Biometria e hardware</li>
+                            <li>Resistente a phishing</li>
+                        </ul>
+                        <li><strong>Zero Trust:</strong></li>
+                        <ul style="margin-left: 20px;">
+                            <li>"Nunca confie, sempre verifique"</li>
+                            <li>Verificação contínua</li>
+                            <li>Contexto de acesso</li>
+                        </ul>
+                    </ul>
+                </div>
+                <div>
+                    <h3>📈 Evolução dos Padrões</h3>
+                    <ul>
+                        <li><strong>OAuth 2.1:</strong></li>
+                        <ul style="margin-left: 20px;">
+                            <li>PKCE obrigatório</li>
+                            <li>Remoção de fluxos inseguros</li>
+                            <li>Melhores práticas integradas</li>
+                        </ul>
+                        <li><strong>OpenID Connect Extensions:</strong></li>
+                        <ul style="margin-left: 20px;">
+                            <li>Back-Channel Logout</li>
+                            <li>Session Management</li>
+                            <li>Federation</li>
+                        </ul>
+                    </ul>
+                </div>
+            </div>
+            <div class="flow-diagram">
+                <strong>🎯 Futuro:</strong> Autenticação contínua, baseada em contexto e comportamento, com mínima fricção para o usuário
+            </div>
+        </div>
+
+        <!-- SLIDE 19 - CONCLUSÃO -->
+        <div class="slide">
+            <div class="speaker-indicator">👥 TODOS</div>
+            <h2>Conclusões e Pontos-Chave</h2>
+            <div class="two-column">
+                <div>
+                    <h3>🎯 Principais Aprendizados</h3>
+                    <ul>
+                        <li><strong>Autenticação ≠ Autorização</strong></li>
+                        <li><strong>JWT:</strong> Stateless, mas requer cuidado</li>
+                        <li><strong>OAuth 2.0:</strong> Delegação segura de acesso</li>
+                        <li><strong>OpenID Connect:</strong> Identidade padronizada</li>
+                        <li><strong>Segurança:</strong> Implementação é crucial</li>
+                    </ul>
+                </div>
+                <div>
+                    <h3>📋 Recomendações Práticas</h3>
+                    <ul>
+                        <li>Use <strong>algoritmos seguros</strong> (RS256)</li>
+                        <li>Implemente <strong>tokens curtos</strong> + refresh</li>
+                        <li>Valide <strong>rigorosamente</strong> todos os tokens</li>
+                        <li><strong>HTTPS sempre</strong> em produção</li>
+                        <li>Monitore e <strong>audite</strong> acessos</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="success-box">
+                <strong>💡 Lição Final:</strong> A segurança não é um produto, é um processo contínuo que evolui com as ameaças e tecnologias.
+            </div>
+        </div>
+
+        <!-- SLIDE 20 - PERGUNTAS -->
+        <div class="slide">
+            <div class="speaker-indicator">👥 TODOS</div>
+            <h1>Perguntas e Discussão</h1>
+            <div class="two-column">
+                <div>
+                    <h3>🤔 Temas para Discussão</h3>
+                    <ul>
+                        <li>Experiências com implementação</li>
+                        <li>Casos específicos da sua organização</li>
+                        <li>Dúvidas sobre vulnerabilidades</li>
+                        <li>Cenários práticos de uso</li>
+                    </ul>
+                </div>
+                <div>
+                    <h3>📚 Recursos Adicionais</h3>
+                    <ul>
+                        <li>RFC 7519 (JWT)</li>
+                        <li>RFC 6749 (OAuth 2.0)</li>
+                        <li>OpenID Connect Specification</li>
+                        <li>OWASP Authentication Guide</li>
+                        <li>NIST Digital Identity Guidelines</li>
+                    </ul>
+                </div>
+            </div>
+            <div style="margin-top: 50px;">
+                <h2>Obrigado pela atenção! 🙏</h2>
+                <p style="font-size: 1.2rem; color: #87CEEB;">
+                    Equipe: Kevin • Vitor Cesar • Gustavo Ross • Guilherme assis
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navegação -->
+    <div class="navigation">
+        <button class="nav-btn" id="prevBtn" onclick="changeSlide(-1)">← Anterior</button>
+        <button class="nav-btn" id="nextBtn" onclick="changeSlide(1)">Próximo →</button>
+    </div>
+
+    <!-- Contador de slides -->
+    <div class="slide-counter">
+        <span id="currentSlide">1</span> / <span id="totalSlides">20</span>
+    </div>
+
+    <script>
+        let currentSlideIndex = 0;
+        const slides = document.querySelectorAll('.slide');
+        const totalSlides = slides.length;
+
+        document.getElementById('totalSlides').textContent = totalSlides;
+
+        function showSlide(index) {
+            slides.forEach(slide => slide.classList.remove('active'));
+            slides[index].classList.add('active');
+            document.getElementById('currentSlide').textContent = index + 1;
+            
+            // Atualizar botões
+            document.getElementById('prevBtn').disabled = index === 0;
+            document.getElementById('nextBtn').disabled = index === totalSlides - 1;
+        }
+
+        function changeSlide(direction) {
+            const newIndex = currentSlideIndex + direction;
+            if (newIndex >= 0 && newIndex < totalSlides) {
+                currentSlideIndex = newIndex;
+                showSlide(currentSlideIndex);
+            }
+        }
+
+        // Navegação por teclado
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'ArrowLeft') {
+                changeSlide(-1);
+            } else if (event.key === 'ArrowRight') {
+                changeSlide(1);
+            } else if (event.key === 'Home') {
+                currentSlideIndex = 0;
+                showSlide(currentSlideIndex);
+            } else if (event.key === 'End') {
+                currentSlideIndex = totalSlides - 1;
+                showSlide(currentSlideIndex);
+            }
+        });
+
+        // Inicializar
+        showSlide(0);
+
+        // Adicionar funcionalidade de tela cheia
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'F11') {
+                event.preventDefault();
+                if (document.fullscreenElement) {
+                    document.exitFullscreen();
+                } else {
+                    document.documentElement.requestFullscreen();
+                }
+            }
+        });
+
+        // Ocultar cursor em tela cheia após inatividade
+        let mouseTimer;
+        document.addEventListener('mousemove', function() {
+            document.body.style.cursor = 'default';
+            clearTimeout(mouseTimer);
+            mouseTimer = setTimeout(() => {
+                if (document.fullscreenElement) {
+                    document.body.style.cursor = 'none';
+                }
+            }, 3000);
+        });
+    </script>
+</body>
+</html>
