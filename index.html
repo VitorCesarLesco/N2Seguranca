@@ -1019,11 +1019,15 @@ res.cookie('access_token', token, {
         showSlide(0);
 
         // Adicionar funcionalidade de tela cheia
+        let mouseTimer;
         document.addEventListener('keydown', function(event) {
             if (event.key === 'F11') {
                 event.preventDefault();
                 if (document.fullscreenElement) {
                     document.exitFullscreen();
+                    // Garantir que o cursor volte a aparecer ao sair do modo tela cheia
+                    document.body.style.cursor = 'default';
+                    clearTimeout(mouseTimer);
                 } else {
                     document.documentElement.requestFullscreen();
                 }
@@ -1031,7 +1035,6 @@ res.cookie('access_token', token, {
         });
 
         // Ocultar cursor em tela cheia após inatividade
-        let mouseTimer;
         document.addEventListener('mousemove', function() {
             document.body.style.cursor = 'default';
             clearTimeout(mouseTimer);
